@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "@fastify/jwt": "^6.5.0",
+    "@fastify/oauth2": "^7.0.0",
+    "@fastify/websocket": "^7.1.2",
+    "fastify": "^4.12.0"
+  },
+  "name": "boardgameapi",
+  "version": "0.0.1",
+  "description": "Small simple action based game-agnostic API for use making board game apps",
+  "main": "index.js",
+  "repository": "git@github.com:kelsin/boardgameapi.git",
+  "author": "Christopher Giroir <kelsin@valefor.com>",
+  "license": "MIT"
+}
