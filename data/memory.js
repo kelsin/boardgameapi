@@ -14,6 +14,8 @@ if (dev) {
   games = {
     aaaa: {
       id: "aaaa",
+      minPlayers: 3,
+      maxPlayers: 5,
       users: [
         "a0b35c96-2d9a-4ac6-b85c-b1596962780e",
         "d1896a79-3677-4e1c-8ee5-56051d36f991",

@@ -86,7 +86,7 @@ fastify.register((fastify, opts, done) => {
     }
   });
 
-  fastify.get('/game/:gameID', {
+  fastify.get('/games/:gameID', {
     onRequest: [fastify.auth],
     websocket: true
   }, (connection, req) => {

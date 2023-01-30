@@ -21,16 +21,25 @@ login -[#purple]>o API
 API -[#purple]>o p1
 deactivate API
 
+== User ==
+p1 -> API: GET /user
+alt logged in
+API -> p1: User()
+else not logged in
+API -[#red]> p1: 403 Unauthorized
+end alt
+
 == Game List ==
+note left API:Not available in Dev mode
 p1 -> API: GET /games
 alt logged in
-API -> p1: GameList()
+API -> p1: GamesJoined()
 else not logged in
 API -[#red]> p1: 403 Unauthorized
 end alt
 
 == Join Game ==
-p1 -> API: POST /games/:gameID
+p1 -> API: POST /games/:gameID/join
 alt logged in and room
 API -> p1: JoinedGame()
 else not logged in
@@ -39,13 +48,37 @@ else no room
 API -[#red]> p1: 400 Bad Request
 end alt
 
+== Start Game ==
+p1 -> API: POST /games/:gameID/start
+alt logged in and owner
+API -> p1: GameStarted()
+else not logged in
+API -[#red]> p1: 403 Unauthorized
+else not owner
+API -[#red]> p1: 403 Unauthorized
+end alt
+
+== Leave Game ==
+p1 -> API: DELETE /games/:gameID
+alt logged in and owner
+API -> p1: GameDeleted()
+else logged in and not owner
+API -> p1: GameLeft()
+else not logged in
+API -[#red]> p1: 403 Unauthorized
+end alt
+
 == Initiate Websocket ==
 p1 -> API: /games/:gameID
-alt logged in and in game
+alt logged in
 API -[#blue]> p1: Upgrade to Websocket
 else not logged in
 API -[#red]> p1: 403 Unauthorized
 else not joined game
+API -[#red]> p1: 400 Bad Request
+else game not started
+API -[#red]> p1: 400 Bad Request
+else game finished
 API -[#red]> p1: 400 Bad Request
 end alt
 
@@ -87,4 +120,13 @@ API -> p1: RandomResult(ActionID:User:Min:Max:Result)
 API -> p2: RandomResult(ActionID:User:Min:Max:Result)
 API -> p3: RandomResult(ActionID:User:Min:Max:Result)
 deactivate API
+
+== Dev: User List ==
+p1 -> API: GET /users
+API -> p1: UserList()
+
+== Dev: Game List ==
+p1 -> API: GET /games
+API -> p1: GameList()
+
 @enduml
