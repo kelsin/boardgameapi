@@ -14,28 +14,33 @@ deactivate API
 == Standard Action ==
 p1 -> API:Action(Action:StateHash)
 activate API
-API -> p2: Proposal(ID:Action:StateHash)
-API -> p3: Proposal(ID:Action:StateHash)
+API -> p1: Proposal(ActionID:User:Action:StateHash)
+API -> p2: Proposal(ActionID:User:Action:StateHash)
+API -> p3: Proposal(ActionID:User:Action:StateHash)
+note over p1: Submitting player is\nalways counted\nas accepted
 
 alt all accept
-p2 -[#green]> API: Accept(ID)
-p3 -[#green]> API: Accept(ID)
-API -> p1: Action(ID:Action:StateHash)
-API -> p2: Action(ID:Action:StateHash)
-API -> p3: Action(ID:Action:StateHash)
+p2 -[#green]> API: Accept(ActionID)
+p3 -[#green]> API: Accept(ActionID)
+note over API: Only accepts one response per player
+API -> p1: Action(ActionID:Action:StateHash)
+API -> p2: Action(ActionID:Action:StateHash)
+API -> p3: Action(ActionID:Action:StateHash)
 else if any reject
-p2 -[#green]> API: Accept(ID)
-p3 -[#red]> API: Reject(ID)
-API -[#red]> p1: Reject(ID)
+p2 -[#green]> API: Accept(ActionID)
+p3 -[#red]> API: Reject(ActionID)
+API -[#red]> p1: Rejected(ActionID)
+API -[#red]> p2: Rejected(ActionID)
+API -[#red]> p3: Rejected(ActionID)
 end alt
 deactivate API
 
 == Random Result ==
-p1 -> API: RequestRandom(p1:Min:Max)
+p1 -> API: RequestRandom(User:Min:Max)
 activate API
-note over API: Generate Random between Min and Max
-API -> p1: RandomResult(ID:p1:Min:Max:Result)
-API -> p2: RandomResult(ID:p1:Min:Max:Result)
-API -> p3: RandomResult(ID:p1:Min:Max:Result)
+note over API: Generate Random between Min and Max\nAdded to the action list
+API -> p1: RandomResult(ActionID:User:Min:Max:Result)
+API -> p2: RandomResult(ActionID:User:Min:Max:Result)
+API -> p3: RandomResult(ActionID:User:Min:Max:Result)
 deactivate API
 @enduml
