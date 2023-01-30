@@ -4,25 +4,69 @@ actor "Player 1" as p1
 actor "Player 2" as p2
 actor "Player 3" as p3
 participant API
+collections "Third Party Login" as login
 
-== Request History ==
+== Login Methods ==
+p1 -> API: GET /login
+activate API
+API -> p1: List of login methods
+deactivate API
+
+== Login ==
+p1 -[#purple]>o API: Redirect user to login method
+activate API
+API -[#purple]>o login
+note over login: **OAuth2 Logins**\nGithub\n\n//Others Planned//\nFacebook\nGoogle\nDiscord\nTwitch
+login -[#purple]>o API
+API -[#purple]>o p1
+deactivate API
+
+== Game List ==
+p1 -> API: GET /games
+alt logged in
+API -> p1: GameList()
+else not logged in
+API -[#red]> p1: 403 Unauthorized
+end alt
+
+== Join Game ==
+p1 -> API: POST /games/:gameID
+alt logged in and room
+API -> p1: JoinedGame()
+else not logged in
+API -[#red]> p1: 403 Unauthorized
+else no room
+API -[#red]> p1: 400 Bad Request
+end alt
+
+== Initiate Websocket ==
+p1 -> API: /games/:gameID
+alt logged in and in game
+API -[#blue]> p1: Upgrade to Websocket
+else not logged in
+API -[#red]> p1: 403 Unauthorized
+else not joined game
+API -[#red]> p1: 400 Bad Request
+end alt
+
+== WS: Request History ==
 p1 -> API:RequestActions(From)
 activate API
 API -> p1:Actions()
 deactivate API
 
-== Standard Action ==
+== WS: Standard Action ==
 p1 -> API:Action(Action:StateHash)
 activate API
 API -> p1: Proposal(ActionID:User:Action:StateHash)
 API -> p2: Proposal(ActionID:User:Action:StateHash)
 API -> p3: Proposal(ActionID:User:Action:StateHash)
-note over p1: Submitting player is\nalways counted\nas accepted
+note over p1: Submitting player is\nalways counted as\naccepted by default
 
 alt all accept
 p2 -[#green]> API: Accept(ActionID)
 p3 -[#green]> API: Accept(ActionID)
-note over API: Only accepts one response per player
+note over API: Only accepts one\nresponse per player
 API -> p1: Action(ActionID:Action:StateHash)
 API -> p2: Action(ActionID:Action:StateHash)
 API -> p3: Action(ActionID:Action:StateHash)
@@ -35,10 +79,10 @@ API -[#red]> p3: Rejected(ActionID)
 end alt
 deactivate API
 
-== Random Result ==
+== WS: Random Result ==
 p1 -> API: RequestRandom(User:Min:Max)
 activate API
-note over API: Generate Random between Min and Max\nAdded to the action list
+note over API: Generate random number\nbetween Min and Max
 API -> p1: RandomResult(ActionID:User:Min:Max:Result)
 API -> p2: RandomResult(ActionID:User:Min:Max:Result)
 API -> p3: RandomResult(ActionID:User:Min:Max:Result)
