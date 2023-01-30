@@ -1,0 +1,41 @@
+@startuml
+title Board Game API
+actor "Player 1" as p1
+actor "Player 2" as p2
+actor "Player 3" as p3
+participant API
+
+== Request History ==
+p1 -> API:RequestActions(From)
+activate API
+API -> p1:Actions()
+deactivate API
+
+== Standard Action ==
+p1 -> API:Action(Action:StateHash)
+activate API
+API -> p2: Proposal(ID:Action:StateHash)
+API -> p3: Proposal(ID:Action:StateHash)
+
+alt all accept
+p2 -[#green]> API: Accept(ID)
+p3 -[#green]> API: Accept(ID)
+API -> p1: Action(ID:Action:StateHash)
+API -> p2: Action(ID:Action:StateHash)
+API -> p3: Action(ID:Action:StateHash)
+else if any reject
+p2 -[#green]> API: Accept(ID)
+p3 -[#red]> API: Reject(ID)
+API -[#red]> p1: Reject(ID)
+end alt
+deactivate API
+
+== Random Result ==
+p1 -> API: RequestRandom(p1:Min:Max)
+activate API
+note over API: Generate Random between Min and Max
+API -> p1: RandomResult(ID:p1:Min:Max:Result)
+API -> p2: RandomResult(ID:p1:Min:Max:Result)
+API -> p3: RandomResult(ID:p1:Min:Max:Result)
+deactivate API
+@enduml
