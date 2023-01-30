@@ -3,6 +3,7 @@ const fastify = require('fastify')({ logger: true });
 const oauthPlugin = require('@fastify/oauth2')
 const oauth = require('./oauth');
 const users = require('./users');
+const data = require('./data/memory');
 
 // Variables
 const dev = process.env.NODE_ENV !== 'production'
@@ -36,6 +37,10 @@ fastify.decorate("auth", (request, reply) => {
 
 if (process.env.GITHUB_CLIENT_ID) {
   logins['github'] = `${host}/login/github`;
+
+  if (!users.methods.github) {
+    users.methods['github'] = {};
+  }
   oauth.register_github_oauth(fastify, host);
 }
 
@@ -51,14 +56,51 @@ fastify.get('/user', {onRequest: [fastify.auth]}, (request, reply) => {
   reply.send(request.user);
 });
 
+if (dev) {
+  fastify.get('/users', (request, reply) => {
+    reply.send(users);
+  });
+  fastify.get('/games', (request, reply) => {
+    reply.send(data.games);
+  });
+}
+
+
+const userSockets = {};
 fastify.register((fastify, opts, done) => {
-  fastify.get('/ws', {
+  fastify.addHook('preValidation', (request, reply) => {
+    // check if the game exists
+    const { gameID } = request.params;
+
+    if (!data.gameIDPattern.test(gameID)) {
+      return reply.badRequest();
+    }
+
+    const game = data.get_game(gameID);
+    if (!game) {
+      return reply.notFound();
+    }
+
+    if (!game.users.includes(request.user.id)) {
+      return reply.unauthorized();
+    }
+  });
+
+  fastify.get('/game/:gameID', {
     onRequest: [fastify.auth],
     websocket: true
   }, (connection, req) => {
     fastify.log.info({user:req.user, msg:"new websocket connection"});
+
+    // Save socket for use by user
+    userSockets[req.user.id] = connection.socket;
+
     connection.socket.on('message', message => {
       connection.socket.send('hi from server');
+    });
+
+    connection.socket.on('close', () => {
+      delete userSockets[req.user.id];
     });
   });
   done();
